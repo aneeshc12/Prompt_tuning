@@ -13,8 +13,14 @@ from copy import copy
 
 # Wrapper class that manages the soft prompt and interfaces with the GPT2 model
 class PrefixTunedGPT2(nn.Module):       # not named super accurately, any model should work 
-    def __init__(self, num_prompts, model, tokenizer, init_prompts=None):
+    def __init__(self, num_prompts, model, tokenizer, init_prompts=None, pretrained_embs=None):
         super(PrefixTunedGPT2, self).__init__()
+        if(init_prompts != None and pretrained_embs != None):
+            raise("Either load pretrained weights or use init_prompts")
+            exit(1)
+        if(pretrained_embs != None):
+            assert(num_prompts == pretrained_embs.shape[0])
+
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
         self.soft_prompt_length = num_prompts

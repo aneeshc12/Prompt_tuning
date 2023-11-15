@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 from transformers import GPT2Tokenizer, GPT2Model
 from transformers import DataCollatorForSeq2Seq, AdamW, get_scheduler
 
-from utils.load_data import get_squad_data
+from utils.load_data import get_europarl_data
 from utils.load_models import load_gpt2_and_tok
 from models.prefix_tuner import PrefixTunedGPT2
 
@@ -18,7 +18,7 @@ from models.prefix_tuner import PrefixTunedGPT2
 # parameters
 batch_size = 2
 soft_prompt_length = 4
-init_soft_prompt = "question answer help result"
+init_soft_prompt = "bulgarian english translation translate_bg_en"
 
 lr = 5e-5
 num_epochs = 10
@@ -31,7 +31,7 @@ model, tokenizer = load_gpt2_and_tok()
 ptgpt2 = PrefixTunedGPT2(soft_prompt_length, model, tokenizer, init_soft_prompt).to(device)
 
 # load dataset, tokenize, trim train and val for easier computation
-tokenized_traindata, tokenized_valdata = get_squad_data(tokenizer)
+tokenized_traindata, tokenized_valdata = get_europarl_data(tokenizer)
 
 data_collator =  DataCollatorForSeq2Seq(tokenizer=tokenizer)
 train_dataloader = DataLoader(
@@ -109,7 +109,7 @@ for epoch in range(num_epochs):
         print(f"Early stopping, current val loss: %f | last val loss: %f" % (avg_val_loss.item()/len(val_dataloader), last_val_loss.item()))
         
         current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        save_path = f"qna_soft_prompts_length{soft_prompt_length}_{current_time}.pt"
+        save_path = f"tx_soft_prompts_length{soft_prompt_length}_{current_time}.pt"
 
         soft_prompt_state_dict = {"soft_prompt.weight": ptgpt2.state_dict()["soft_prompt.weight"]}
         torch.save(soft_prompt_state_dict, save_path)
@@ -121,7 +121,7 @@ for epoch in range(num_epochs):
     # save the model at each epoch
     if (epoch % save_interval == 0 and epoch != 0) or epoch == 1:
         current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        save_path = f"./weights/qna_soft_prompts_epochs{epoch}_length{soft_prompt_length}_{current_time}.pt"
+        save_path = f"./weights/tx_soft_prompts_epochs{epoch}_length{soft_prompt_length}_{current_time}.pt"
 
         soft_prompt_state_dict = {ptgpt2.state_dict()["soft_prompt.weight"]}
 
